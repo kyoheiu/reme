@@ -1,6 +1,6 @@
 A simple CLI to create slack reminder.
 
-<script id="asciicast-fqLCIbepnV9K10YVUrWu5ImjF" src="https://asciinema.org/a/fqLCIbepnV9K10YVUrWu5ImjF.js" async></script>
+[![asciicast](https://asciinema.org/a/fqLCIbepnV9K10YVUrWu5ImjF.svg)](https://asciinema.org/a/fqLCIbepnV9K10YVUrWu5ImjF)
 
 ## Installation
 ```
