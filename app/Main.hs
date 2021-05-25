@@ -25,10 +25,6 @@ instance ToJSON MyData
 
 path = "~/.config/reme.dhall"
 
-addPerson p as
-    | elem p as || p == "" = p
-    | otherwise = ""
-
 main :: IO ()
 main = do
     config <- input auto path
