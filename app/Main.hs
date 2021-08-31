@@ -67,7 +67,11 @@ toLocalTime tz =
 
 extractInfo r =
   getCurrentTimeZone >>= \tz ->
-    putStrLn $ "\nOK! task: " ++ reText rem ++ "\n    time: " ++ toLocalTime tz (reTime rem)
+    putStrLn $
+      "\nOK! task: "
+        ++ reText rem
+        ++ "\n    time: "
+        ++ toLocalTime tz (reTime rem)
   where
     reText :: Reminder -> String
     reText = text
