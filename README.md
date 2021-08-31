@@ -1,6 +1,6 @@
 A simple CLI to create slack reminder.
 
-[![asciicast](https://asciinema.org/a/fqLCIbepnV9K10YVUrWu5ImjF.svg)](https://asciinema.org/a/fqLCIbepnV9K10YVUrWu5ImjF)
+![gif](https://github.com/kyoheiu/reme/blob/main/sample.gif)
 
 ## Installation
 ```
