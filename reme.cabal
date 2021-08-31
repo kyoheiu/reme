@@ -29,7 +29,7 @@ executable reme
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
     build-depends:    
-        base >= 4.15.0.0
+        base
       , req
       , aeson
       , dhall
