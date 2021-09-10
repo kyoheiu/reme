@@ -8,12 +8,13 @@ module Main where
 import Control.Monad.IO.Class
 import Data.Aeson
 import qualified Data.ByteString as BS
-import Data.ByteString.UTF8
+import qualified Data.ByteString.UTF8 as BS8
 import Data.Time.Clock.POSIX
 import Data.Time.LocalTime
 import Dhall
 import GHC.Generics
 import Network.HTTP.Req
+import System.Environment (getArgs)
 import Prelude hiding (error)
 
 path = "~/.config/reme.dhall"
@@ -79,14 +80,24 @@ extractInfo r =
     reTime = time
     rem = reminder r
 
-main :: IO ()
-main = do
-  config <- input auto path
+askTime = do
+  putStrLn "When to send reminder?"
+  putStrLn "e.g. \"in 5 minutes\" or \"Every Thursday\""
+
+doWith0Arg :: IO (String, String)
+doWith0Arg = do
   putStrLn "What's your task?"
   task <- getLine
-  putStrLn "And when to send reminder?"
-  putStrLn "e.g. \"in 5 minutes\" or \"Every Thursday\""
+  askTime
   t <- getLine
+  return (task, t)
+
+doWith1Args :: IO String
+doWith1Args = askTime >> getLine
+
+registerReq :: String -> String -> IO ()
+registerReq task t = do
+  config <- input auto path
   let myData = MyData {text = task, time = t}
   runReq defaultHttpConfig $ do
     v <-
@@ -95,10 +106,26 @@ main = do
         (https "slack.com" /: "api" /: "reminders.add")
         (ReqBodyJson myData)
         jsonResponse
-        $ oAuth2Bearer $ fromString $ slackToken config
+        $ oAuth2Bearer $ BS8.fromString $ slackToken config
     let resBody = responseBody v
     case fromJSON resBody of
       Success res -> liftIO $ extractInfo res
       Error _ -> case fromJSON resBody of
         Success errorRes -> liftIO $ print $ error errorRes
         Error _ -> liftIO $ print "Error. Please try again."
+
+main :: IO ()
+main = do
+  args <- getArgs
+  case length args of
+    0 -> do
+      (task, t) <- doWith0Arg
+      registerReq task t
+    1 -> do
+      let task = head args
+      t <- doWith1Args
+      registerReq task t
+    2 -> do
+      let [task, t] = args
+      registerReq task t
+    _ -> putStrLn "Invalid arguments. See `reme --help`"
