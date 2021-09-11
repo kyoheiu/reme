@@ -9,6 +9,7 @@ import Control.Monad.IO.Class
 import Data.Aeson
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.UTF8 as BS8
+import Data.List (unwords)
 import Data.Time.Clock.POSIX
 import Data.Time.LocalTime
 import Dhall
@@ -16,6 +17,13 @@ import GHC.Generics
 import Network.HTTP.Req
 import System.Environment (getArgs)
 import Prelude hiding (error)
+
+help =
+  "A simple CLI to create slack reminder.\n\
+  \To set reminder,\n\
+  \`reme \"[text]\" \"[time]\"` will work.\n\
+  \`reme \"[text]\"` will ask you the time to send reminder.\n\
+  \`reme` shows this help."
 
 path = "~/.config/reme.dhall"
 
@@ -84,16 +92,8 @@ askTime = do
   putStrLn "When to send reminder?"
   putStrLn "e.g. \"in 5 minutes\" or \"Every Thursday\""
 
-doWith0Arg :: IO (String, String)
-doWith0Arg = do
-  putStrLn "What's your task?"
-  task <- getLine
-  askTime
-  t <- getLine
-  return (task, t)
-
-doWith1Args :: IO String
-doWith1Args = askTime >> getLine
+doWith1Arg :: IO String
+doWith1Arg = askTime >> getLine
 
 registerReq :: String -> String -> IO ()
 registerReq task t = do
@@ -111,21 +111,19 @@ registerReq task t = do
     case fromJSON resBody of
       Success res -> liftIO $ extractInfo res
       Error _ -> case fromJSON resBody of
-        Success errorRes -> liftIO $ print $ error errorRes
+        Success errorRes -> liftIO $ putStrLn $ "Error: " ++ error errorRes
         Error _ -> liftIO $ print "Error. Please try again."
 
 main :: IO ()
-main = do
-  args <- getArgs
-  case length args of
-    0 -> do
-      (task, t) <- doWith0Arg
-      registerReq task t
-    1 -> do
-      let task = head args
-      t <- doWith1Args
-      registerReq task t
-    2 -> do
-      let [task, t] = args
-      registerReq task t
-    _ -> putStrLn "Invalid arguments. See `reme --help`"
+main =
+  getArgs >>= \args ->
+    if null args
+      then putStrLn help
+      else case length args of
+        1 ->
+          let task = head args
+           in doWith1Arg >>= \t -> registerReq task t
+        2 ->
+          let [task, t] = args
+           in registerReq task t
+        _ -> putStrLn "Invalid arguments."
